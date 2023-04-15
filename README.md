@@ -17,4 +17,4 @@
 ```bash
 git clone https://github.com/AbelKidane-abita/Computer-Networks-Final-Project.git
 ```
-Or You should also sign in to your github account on GitHub Desktop, and add the repository from there
+Or You can also sign in to your github account on GitHub Desktop, and add the repository from there
