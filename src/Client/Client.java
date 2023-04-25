@@ -5,6 +5,7 @@ import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
+
 //import java.util.concurrent.TimeUnit;
 
 public class Client {
@@ -130,7 +131,7 @@ public class Client {
 		String body_contents = "ACK";
 		bodyData = body_contents.getBytes();
 		length = "ACK".length();
-		SendPacket();
+//		SendPacket();
 	}
 	//generate the Packet
 	public static byte[] GeneratePacketClientSide(String hostIP, String messageType, 
@@ -181,15 +182,15 @@ public class Client {
 		
 //		sendData = GeneratePacketClientSide(hostIP, msgType, fileName, sequenceNo, length, bodyData);
 //		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, serverPort);
-		try {
+//		try {
 //			clientSocket.send(sendPacket);
-			SendPacket();
-			
-
-		} catch (IOException e1) {
-			System.out.print("Error: Sending the packet failed.");
-		}	
-	}
+//			SendPacket();
+//			
+//
+//		} catch (IOException e1) {
+//			System.out.print("Error: Sending the packet failed.");
+//		}	
+}
 	//receive ack for the request from the server
 	public static void SecondStep() {
 		//------------------------------------------------------------------------------------------------------------------
@@ -208,11 +209,11 @@ public class Client {
 		sequenceNo = GenerateSeqenceNumber(sequenceNo);
 		length = message.length();
 		bodyData = message.getBytes();
-		try {
-			SendPacket();
-		}catch(Exception f) {
-			System.out.println("Error in the third part of the 3 way handshake");
-		}
+//		try {
+//			SendPacket();
+//		}catch(Exception f) {
+//			System.out.println("Error in the third part of the 3 way handshake");
+//		}
 	}
 
 	public static void ThreeWayHandShake() {
@@ -271,8 +272,8 @@ public class Client {
 		sequenceNo = GenerateSeqenceNumber(sequenceNo);
 		length = body_content.length();
 		bodyData = body_content.getBytes();
-		SendPacket();
-		SendPacket();
+//		SendPacket();
+//		SendPacket();
 	}
 	public static void SecondTerminationStep(){
 		try {
@@ -288,7 +289,7 @@ public class Client {
 		length = body_content.length();
 		bodyData = body_content.getBytes();
 		
-		SendPacket();
+//		SendPacket();
 	}
 	public static void TerminationSequence() throws IOException {
 
