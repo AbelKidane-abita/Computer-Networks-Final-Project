@@ -9,34 +9,53 @@ import java.time.LocalTime;
 import java.util.concurrent.TimeUnit;
 
 public class Client {
-	private static final int HEADER_SIZE = 1024;// header size
-	public static LocalTime time;
-	public static boolean DataReceivedSuccessfully = false;
-	// byte contents of packet
+
+	//-----------------------------------------------------------------------------------------------------
+	
+	// DEFINING VARIABLES
+	
+	// Socket related variables
+	public static DatagramSocket clientSocket;
+	public static DatagramPacket receivePacket;
+	public static DatagramPacket sendPacket;
+	static InetAddress clientAddress;
+	static InetAddress serverAddress = null;
+	static int serverPort = 9881;
+	static String serverName = "";
+
+	// Data related variables
 	static byte[] receiveData = new byte[1024];  
 	static byte[] sendData = new byte[1024];
-	//Datagram packets 
-	static DatagramSocket clientSocket;
-	static DatagramPacket receivePacket;
-	static DatagramPacket sendPacket;
-	static String message;
-	static InetAddress clientAddress;
-	static int serverPort = 9881;
-	static InetAddress serverAddress = null;
-	static DataInputStream InputFromTerminal = new DataInputStream(System.in);
-	static String userinput;
-	static String serverName = "";
-	//static String hostIP_recievePacket;
-
 	//header contents
 	static String hostIP;
-
 	static String msgType;
+	// static int fileNameLength;
 	static String fileName;
 	static int sequenceNo;
 	static long length;
 	//body contents
 	static byte[] bodyData;
+
+	// Packet content related variables
+	private static final int HEADER_SIZE = 1024;// header size
+	public static int PACKET_SIZE;
+
+	// Time related 
+	public static LocalTime time;
+
+
+	// Checking for the success of data reception
+	public static boolean DataReceivedSuccessfully = false;
+
+
+	// Other
+	static String message;
+	static DataInputStream InputFromTerminal = new DataInputStream(System.in);
+	static String userinput;
+
+	//static String hostIP_recievePacket;
+
+	//-----------------------------------------------------------------------------------------------------
 	
 	//Should add save file here 
 	
@@ -51,7 +70,6 @@ public class Client {
 		String str = String.format("%0" + fixedLength + "d", num);
 		return str;
 	}
-	
 
 	public static void PrintPacketContents() throws IOException{
 		System.out.println("\n---------------------------------------------");
@@ -68,7 +86,6 @@ public class Client {
 		System.out.println("---------------------------------------------\n");
 
 	}
-
 
 	public static void ReceivePacket(){
 		try {
@@ -91,7 +108,7 @@ public class Client {
 
 			//Assign the values of the header fields
 			hostIP = new String(messageData, 0, ip_length, StandardCharsets.UTF_8);
-			
+
 			msgType = new String(messageData, ip_length, msgType_length, StandardCharsets.UTF_8);
 
 			String file_length_string = new String(messageData,ip_length + msgType_length, 
@@ -124,14 +141,14 @@ public class Client {
 			System.out.println("Error: Receiving the Packet stopped.");
 		}
 	}
- 
+
 	//sending ack
 	public static void SendACK() throws IOException {
 		sequenceNo = GenerateSeqenceNumber(sequenceNo);
 		String body_contents = "ACK";
 		bodyData = body_contents.getBytes();
 		length = "ACK".length();
-//		SendPacket();
+		//		SendPacket();
 	}
 	//generate the Packet
 	public static byte[] GeneratePacketClientSide(String hostIP, String messageType, 
@@ -179,18 +196,18 @@ public class Client {
 		sequenceNo = 1;
 		bodyData = message.getBytes();
 		//generate the packet
-		
-//		sendData = GeneratePacketClientSide(hostIP, msgType, fileName, sequenceNo, length, bodyData);
-//		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, serverPort);
-//		try {
-//			clientSocket.send(sendPacket);
-//			SendPacket();
-//			
-//
-//		} catch (IOException e1) {
-//			System.out.print("Error: Sending the packet failed.");
-//		}	
-}
+
+		//		sendData = GeneratePacketClientSide(hostIP, msgType, fileName, sequenceNo, length, bodyData);
+		//		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, serverPort);
+		//		try {
+		//			clientSocket.send(sendPacket);
+		//			SendPacket();
+		//			
+		//
+		//		} catch (IOException e1) {
+		//			System.out.print("Error: Sending the packet failed.");
+		//		}	
+	}
 	//receive ack for the request from the server
 	public static void SecondStep() {
 		//------------------------------------------------------------------------------------------------------------------
@@ -209,11 +226,11 @@ public class Client {
 		sequenceNo = GenerateSeqenceNumber(sequenceNo);
 		length = message.length();
 		bodyData = message.getBytes();
-//		try {
-//			SendPacket();
-//		}catch(Exception f) {
-//			System.out.println("Error in the third part of the 3 way handshake");
-//		}
+		//		try {
+		//			SendPacket();
+		//		}catch(Exception f) {
+		//			System.out.println("Error in the third part of the 3 way handshake");
+		//		}
 	}
 
 	public static void ThreeWayHandShake() {
@@ -272,8 +289,8 @@ public class Client {
 		sequenceNo = GenerateSeqenceNumber(sequenceNo);
 		length = body_content.length();
 		bodyData = body_content.getBytes();
-//		SendPacket();
-//		SendPacket();
+		//		SendPacket();
+		//		SendPacket();
 	}
 	public static void SecondTerminationStep(){
 		try {
@@ -288,8 +305,8 @@ public class Client {
 		sequenceNo = GenerateSeqenceNumber(sequenceNo);
 		length = body_content.length();
 		bodyData = body_content.getBytes();
-		
-//		SendPacket();
+
+		//		SendPacket();
 	}
 	public static void TerminationSequence() throws IOException {
 
@@ -311,48 +328,48 @@ public class Client {
 	@SuppressWarnings({ "removal", "deprecation" })
 	public static void ReceivePacketWithInterruptAndRetransmissionClient() throws IOException {
 
-//		receivePacket = new DatagramPacket(receiveData, receiveData.length);
-//		m  = new ReceivePacketThreadClient(); //Threading
-//		//long startTime = System.currentTimeMillis();
-//		DataReceivedSuccessfully = false;
-//		m.start();
-//		while(true){ //run while the sent ack is not ack'ed back
-//			try {
-//				// check at certain intervals if the packet was received successfully until timeout 
-//				int delay = 0;
-//				while(DataReceivedSuccessfully == false && delay<=3000) { //wait for a maximum of 3 seconds
-//					Thread.sleep(10);//Milliseconds
-//					delay +=10;
-//				}
-//				//suspend or stop the 
-//				if (DataReceivedSuccessfully == false) { // data not received
-//					System.out.println("Time out. Stopping the thread...");
-//					m.suspend();
-//					//code to re-send the packet from the second step
-//					System.out.println("Retransmission");
-//					SendPacket();
-//					//resume the thread
-//					m.resume();
-//				}
-//				else { //data received
-//					m.stop();
-//					//PrintPacketContents();
-//					break;
-//				}
-//			}catch(Exception ie) {
-//				System.out.println("Error in the second part of the 3 way handshake");	
-//			}	
-//		}
-//		//PrintPacketContents();
-//		//address of the sender
-//		clientAddress = receivePacket.getAddress();
-//		serverPort = receivePacket.getPort();	
-		
-		
+		//		receivePacket = new DatagramPacket(receiveData, receiveData.length);
+		//		m  = new ReceivePacketThreadClient(); //Threading
+		//		//long startTime = System.currentTimeMillis();
+		//		DataReceivedSuccessfully = false;
+		//		m.start();
+		//		while(true){ //run while the sent ack is not ack'ed back
+		//			try {
+		//				// check at certain intervals if the packet was received successfully until timeout 
+		//				int delay = 0;
+		//				while(DataReceivedSuccessfully == false && delay<=3000) { //wait for a maximum of 3 seconds
+		//					Thread.sleep(10);//Milliseconds
+		//					delay +=10;
+		//				}
+		//				//suspend or stop the 
+		//				if (DataReceivedSuccessfully == false) { // data not received
+		//					System.out.println("Time out. Stopping the thread...");
+		//					m.suspend();
+		//					//code to re-send the packet from the second step
+		//					System.out.println("Retransmission");
+		//					SendPacket();
+		//					//resume the thread
+		//					m.resume();
+		//				}
+		//				else { //data received
+		//					m.stop();
+		//					//PrintPacketContents();
+		//					break;
+		//				}
+		//			}catch(Exception ie) {
+		//				System.out.println("Error in the second part of the 3 way handshake");	
+		//			}	
+		//		}
+		//		//PrintPacketContents();
+		//		//address of the sender
+		//		clientAddress = receivePacket.getAddress();
+		//		serverPort = receivePacket.getPort();	
+
+
 		//Should add process client request here 
 	}
-	
 
-	
+
+
 
 }
