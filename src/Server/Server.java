@@ -48,27 +48,7 @@ public class Server {
 
 	//-----------------------------------------------------------------------------------------------------
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	
 	public static String ConvertInt(int num, int fixedLength) {
 		String str = String.format("%0" + fixedLength + "d", num);
 		return str;
