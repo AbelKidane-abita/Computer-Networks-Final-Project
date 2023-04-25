@@ -99,9 +99,9 @@ public class Client {
 			int ip_length = clientAddress.getHostAddress().length();
 			int msgType_length = 3;
 			int fileName_length_length = 3; //possible no. of characters of 1-999
-			int fileName_length = 11; //file123.txt --11 characters
-			int sequenceNo_length = 3;
-			int length_length = 4;
+			int fileName_length = 11; //temporary value during testing, will be changed during runtime
+			int sequenceNo_length = 3; // three digit number limit
+			int length_length = 4; // 
 
 			byte[] messageData = receivePacket.getData();
 
