@@ -43,17 +43,11 @@ public class Client {
 	// Time related 
 	public static LocalTime time;
 
-
-	// Checking for the success of data reception
-	public static boolean DataReceivedSuccessfully = false;
-
-
 	// Other
 	static String message;
 	static DataInputStream InputFromTerminal = new DataInputStream(System.in);
 	static String userinput;
-
-	//static String hostIP_recievePacket;
+	public static boolean DataReceivedSuccessfully = false;
 
 	//-----------------------------------------------------------------------------------------------------
 	
@@ -90,7 +84,7 @@ public class Client {
 	public static void ReceivePacket(){
 		try {
 			clientSocket.receive(receivePacket);
-			time = LocalTime.now();
+			time = LocalTime.now(); // record when the packet was received
 			clientAddress = receivePacket.getAddress();
 			serverPort = receivePacket.getPort();
 			//DataReceivedSuccessfully = true;
@@ -101,7 +95,7 @@ public class Client {
 			int fileName_length_length = 3; //possible no. of characters of 1-999
 			int fileName_length = 11; //temporary value during testing, will be changed during runtime
 			int sequenceNo_length = 3; // three digit number limit
-			int length_length = 4; // 
+			int length_length = 4; // four digit number limit
 
 			byte[] messageData = receivePacket.getData();
 
