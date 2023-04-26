@@ -202,28 +202,28 @@ public class Server {
 		}		
 	}
 	//Checks if file is available on the specified path below
-		public static boolean isFileAvailable(String filename) {
-			String folderPath = "C:\\Users\\abelk\\eclipse-workspace\\Computer_Networks_Assignment_2\\"; 
-			File folder = new File(folderPath);
-			File file = new File(folder, filename);
-			if (file.exists())	return true;
-			else	return false;
-		}
+	public static boolean isFileAvailable(String filename) {
+		String folderPath = "C:\\Users\\abelk\\eclipse-workspace\\Computer_Networks_Assignment_2\\"; 
+		File folder = new File(folderPath);
+		File file = new File(folder, filename);
+		if (file.exists())	return true;
+		else	return false;
+	}
 	//Returns the file size in a String format
-		@SuppressWarnings("null")
-		public static long Filesize(String filename){
-			String folderPath = "C:\\Users\\abelk\\eclipse-workspace\\Computer_Networks_Assignment_2\\"; 
-			File folder = new File(folderPath);
-			File file = new File(folder, filename);
-			if (file.exists()){
-				long filesize = file.length();
-				return filesize;
-			}
-			else{
-				return (Long) null;
-			}
+	@SuppressWarnings("null")
+	public static long Filesize(String filename){
+		String folderPath = "C:\\Users\\abelk\\eclipse-workspace\\Computer_Networks_Assignment_2\\"; 
+		File folder = new File(folderPath);
+		File file = new File(folder, filename);
+		if (file.exists()){
+			long filesize = file.length();
+			return filesize;
 		}
-	
+		else{
+			return (Long) null;
+		}
+	}
+
 	public static void ReceivePacket(){
 
 		try {			
