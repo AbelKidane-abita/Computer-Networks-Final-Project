@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.time.LocalTime;
 
+
 public class Server {
 
 	//-----------------------------------------------------------------------------------------------------
@@ -37,7 +38,7 @@ public class Server {
 	// Packet content related variables
 	private static final int HEADER_SIZE = 1024;// header size
 	public static int PACKET_SIZE;
-
+	
 	// Time related 
 	public static LocalTime time;
 
@@ -47,7 +48,7 @@ public class Server {
 	public static ReceivePacketThread m;
 
 	//-----------------------------------------------------------------------------------------------------
-
+	
 
 	public static String ConvertInt(int num, int fixedLength) {
 		String str = String.format("%0" + fixedLength + "d", num);
