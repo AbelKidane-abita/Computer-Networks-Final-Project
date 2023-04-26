@@ -126,7 +126,7 @@ public class Server {
 		System.out.println("Executing the first step for the three way handshake on the server side");
 		FirstStep();
 		if (sequenceNo!=1) {
-			//			SecondTerminationStep();			
+			SecondTerminationStep();			
 		}
 		else {
 			//second step -send the ack for the received request for confirmation
@@ -201,7 +201,22 @@ public class Server {
 			}
 		}		
 	}
-
+	
+	//Returns the file size in a String format
+		@SuppressWarnings("null")
+		public static long Filesize(String filename){
+			String folderPath = "C:\\Users\\abelk\\eclipse-workspace\\Computer_Networks_Assignment_2\\"; 
+			File folder = new File(folderPath);
+			File file = new File(folder, filename);
+			if (file.exists()){
+				long filesize = file.length();
+				return filesize;
+			}
+			else{
+				return (Long) null;
+			}
+		}
+	
 	public static void ReceivePacket(){
 
 		try {			
@@ -259,7 +274,7 @@ public class Server {
 			System.out.println("Error: Receiving the Packet stopped.");
 		}
 	}
-	
+
 	public static void TerminationSequence() throws IOException {
 		//first step - receive the packet for termination (already implemented in the main) 
 		//--COMPLETED
@@ -270,7 +285,7 @@ public class Server {
 
 		//third step - receive an ack for the ack
 		ThirdTerminationStep();
-				
+
 	}
 	public static void SecondTerminationStep(){
 		String body_content = "ACK";
