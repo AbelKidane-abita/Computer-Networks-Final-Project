@@ -259,5 +259,39 @@ public class Server {
 			System.out.println("Error: Receiving the Packet stopped.");
 		}
 	}
+	
+	public static void TerminationSequence() throws IOException {
+		//first step - receive the packet for termination (already implemented in the main) 
+		//--COMPLETED
+
+		//second step - send the ack for the termination
+		System.out.println("Executing Termination Sequence...");
+		SecondTerminationStep();
+
+		//third step - receive an ack for the ack
+		ThirdTerminationStep();
+				
+	}
+	public static void SecondTerminationStep(){
+		String body_content = "ACK";
+		fileName = "NULL";
+		msgType = "ACK";
+		sequenceNo = GenerateSeqenceNumber(sequenceNo);
+		length = body_content.length();
+		bodyData = body_content.getBytes();
+		try {
+			SendPacket();
+			SendPacket();
+		} catch (IOException e) {
+			System.out.println("Error in the Second termination step");
+		}
+	}
+	public static void ThirdTerminationStep() throws IOException {
+		try {
+			ReceivePacketWithInterruptAndRetransmissionServer() ;
+		} catch (Exception e) {
+			System.out.println("Error in the Third termination step");
+		}
+	}
 
 }
