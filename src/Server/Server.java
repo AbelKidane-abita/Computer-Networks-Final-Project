@@ -176,7 +176,19 @@ public class Server {
 		}
 	}
 
+	
+	public static void ReceivePacketWithInterruptAndRetransmissionServer2() throws InterruptedException, IOException {
+		DataReceivedSuccessfully = false;
+		// check if the packet was received successfully
+		
+		//
+		
+	}
+	
+	
+	
 	@SuppressWarnings({ "removal", "deprecation" })
+	//needs to change -- refer to the second version
 	public static void ReceivePacketWithInterruptAndRetransmissionServer() throws InterruptedException, IOException {
 		ReceivePacketThread m = new ReceivePacketThread(); //Threading
 		DataReceivedSuccessfully = false;

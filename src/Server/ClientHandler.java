@@ -5,11 +5,28 @@ import java.net.DatagramSocket;
 
 public class ClientHandler implements Runnable {
 	private Server ServerName;
-	// constructor to pass the values
-
+	// constructor to pass the Server object
 	public ClientHandler(Server server) {
 		this.ServerName = server;
 	}
+	
+	//setters and getters for received data
+	public byte[] getReceiveddata() {
+		return ServerName.receiveData;
+	}
+	public void setReceiveddata(byte[] receiveData) {
+		ServerName.receiveData = receiveData;
+	}
+	
+	//setters and getters for DataReceivedSuccessfully
+	public boolean getDataReceivedSuccessfully() {
+		return ServerName.DataReceivedSuccessfully;
+	}
+	public void setDataReceivedSuccessfully(boolean DataReceivedSuccessfully) {
+		ServerName.DataReceivedSuccessfully = DataReceivedSuccessfully;
+	}
+	
+
 
 	@Override
 	public void run() {
