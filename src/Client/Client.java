@@ -12,7 +12,7 @@ public class Client {
 
 	//-----------------------------------------------------------------------------------------------------
 	
-	// DEFINING VARIABLES
+	// DEFINING VARIABLESss
 	
 	// Socket related variables
 	public static DatagramSocket clientSocket;
