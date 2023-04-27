@@ -17,6 +17,7 @@ public class Server {
 	// Socket related variables
 	public static DatagramSocket serverSocket;
 	public static InetAddress clientAddress;
+	public static String ClientHostName;
 	public static int clientPort;
 	public static DatagramPacket sendPacket;
 	public static DatagramPacket receivePacket;
@@ -303,7 +304,7 @@ public class Server {
 		length = body_content.length();
 		bodyData = body_content.getBytes();
 		try {
-			SendPacket();
+			SendPacket();//-FIX
 			SendPacket();
 		} catch (IOException e) {
 			System.out.println("Error in the Second termination step");
