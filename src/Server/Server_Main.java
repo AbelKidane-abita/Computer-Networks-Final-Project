@@ -12,30 +12,29 @@ public class Server_Main {
 	// linked lists to store
 	public static LinkedList<Server> ClientsList = new LinkedList<Server>();
 	public static Queue<DatagramPacket> PacketQueue = new LinkedList<DatagramPacket>();
+	public static LinkedList<ClientHandler> HandlerList = new LinkedList<ClientHandler>();
 	public static Queue<LocalTime> TimeQueue = new LinkedList<LocalTime>();
 	private static int port = 5000;
+	
 	private static void Organizer() {
 				
 		//use setReceiveddata to update the value of receiveData
 		while (true) {
 			//add the code to drop the packet if a clientHandler has already been created
 			if (!PacketQueue.isEmpty()) {
-				DatagramPacket packet = PacketQueue.poll();
+				DatagramPacket packet = PacketQueue.poll(); // is a pop method
 				LocalTime time = TimeQueue.poll();
-				ClientHandler clientHandler = new ClientHandler(packet, time, port); // pass the first packet to the thread
-				port+=1;
-								
 				
+				//Start ClientSession
+				ClientHandler clientHandler = new ClientHandler(packet, time, port); // pass the first packet to the thread
+				HandlerList.add(clientHandler);
+				
+				port+=1;
+				clientHandler.start(); //start the client session
 			}
 		}
-		
 	}
 	
-	//--
-	private static void ReceivePacketsUsingThread() {
-				
-		
-	}
 	
 	private static void InitiateServerListenerThread() {
 		ServerListenerThread serverlistenerthread = new ServerListenerThread(port);
@@ -47,7 +46,5 @@ public class Server_Main {
 	public static void main(String[] args) {
 		InitiateServerListenerThread();
 		Organizer();
-
 	}
-
 }

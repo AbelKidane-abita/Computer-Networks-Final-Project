@@ -49,7 +49,13 @@ public class Server {
 	public static ReceivePacketThread m;
 
 	//-----------------------------------------------------------------------------------------------------
+	//Constructor	
+	public Server(DatagramPacket Packet, int Port) {
+		this.receivePacket = Packet;
+		
+	}
 	
+	//-----------------------------------------------------------------------------------------------------
 
 	public static String ConvertInt(int num, int fixedLength) {
 		String str = String.format("%0" + fixedLength + "d", num);
@@ -121,13 +127,61 @@ public class Server {
 
 		return message.array(); // convert the ByteBuffer to a byte array
 	}
+	
+	public static void ReadPacket() {
+		clientAddress = receivePacket.getAddress();
+		clientPort = receivePacket.getPort();
+		
+		byte[] messageData = receivePacket.getData();
+		//define the length of the fields (except for the IP)
+		int ip_length = clientAddress.getHostAddress().length();
+		int msgType_length = 3;
+		int fileName_length_length = 3; //possible no. of characters of 1-999
+		int fileName_length = 11; //file123.txt --11 characters
+		int sequenceNo_length = 3;
+		int length_length = 4;
+		
+		//Assign the values of the header fields
+		Client_IP = new String(messageData, 0, ip_length, StandardCharsets.UTF_8);
+		//System.out.println(UDPServer.Client_IP);
+		msgType = new String(messageData, ip_length, msgType_length, StandardCharsets.UTF_8);
+		//System.out.println(UDPServer.msgType);
+		String file_length_string = new String(messageData,ip_length + msgType_length, 
+				fileName_length_length, StandardCharsets.UTF_8 );
+		//System.out.println(file_length_string);
+		fileName_length= Integer.parseInt(file_length_string);
 
+		fileName = new String(messageData,ip_length + msgType_length +fileName_length_length,
+				fileName_length,  StandardCharsets.UTF_8 );
+
+		String sequence_number_string = new String(messageData,ip_length + msgType_length + fileName_length_length
+				+fileName_length, sequenceNo_length, StandardCharsets.UTF_8 );
+		sequenceNo = Integer.parseInt(sequence_number_string);
+
+		String length_string = new String(messageData,ip_length + msgType_length +fileName_length_length
+				+ fileName_length + sequenceNo_length, length_length, StandardCharsets.UTF_8 );
+		length = Integer.parseInt(length_string);
+
+
+		// Read the message body
+		bodyData  = new byte[(int) length];
+		int bodyStartIndex = ip_length + msgType_length + fileName_length_length 
+				+fileName_length + sequenceNo_length + length_length ;
+		int bodyEndIndex = (int) (bodyStartIndex + length);
+		bodyData = Arrays.copyOfRange(messageData, bodyStartIndex, bodyEndIndex);
+		
+	}
+	
 	//Three way handshake
 	public static void ThreeWayHandShake() {
 		//first step - receive the request to connect
 		System.out.println("Executing the first step for the three way handshake on the server side");
-		FirstStep();
-		if (sequenceNo!=1) {
+		// FirstStep(); //packet already received in the ServerListenerThread so instead we need the method below
+		
+		//Read packet and assign the packet variables
+		ReadPacket();
+		
+		if (sequenceNo!=1) { 
 			SecondTerminationStep();			
 		}
 		else {

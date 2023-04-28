@@ -22,13 +22,17 @@ public class ServerListenerThread extends Thread{
 	public void run(){
 		
 		while (true) {
+			
 			System.out.println("Server Listening to clients...");
+			
 			try {
 				ServerSocket = new DatagramSocket(MainServerPort);
 			} catch (SocketException e) {
 				System.out.println("Error: Listening through port-"+MainServerPort+" has failed.");
 			}
+			
 			try {
+				
 				Packet = new DatagramPacket(ReceiveData, ReceiveData.length);
 				ServerSocket.receive(Packet);
 				time = LocalTime.now();
