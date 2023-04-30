@@ -31,6 +31,7 @@ public class Server_Main {
 				
 				port+=1;
 				clientHandler.start(); //start the client session
+				
 			}
 		}
 	}

@@ -18,14 +18,20 @@ public class ClientHandler  extends Thread{
 		this.ClientHandlerPort = Port; // a port on a server 
 	}
 	
+	
 	@Override
 	public void run() {
 		// code to process client request is put here
 		//Note that the first step of the Three-way handshake
-		Server ClientSession = new Server(Packet, ClientHandlerPort);
+		try {
+			ServerSocket = new DatagramSocket(ClientHandlerPort);
+		} catch (SocketException e) {
+			System.out.println("Client Handler Failed.");
+			System.exit(0);//terminate the thread in the case of port access failure
+		}
+		Server ClientSession = new Server(Packet, ServerSocket);
 		
-		
-		
+		ClientSession.HandleClient();
 		
 //		try {
 //			ServerSocket = new DatagramSocket(ClientHandlerPort);
@@ -37,7 +43,7 @@ public class ClientHandler  extends Thread{
 		
 		//Do the three way handshake
 
-		System.out.println("Server Listening to Client "+""+" Requests...");
+		//System.out.println("Server Listening to Client "+""+" Requests...");
 		
 
 
