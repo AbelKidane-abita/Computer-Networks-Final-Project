@@ -433,7 +433,7 @@ public class Server {
 		int partition_size =0;
 		String filePath = folderPath + fileName;
 		RandomAccessFile file = new RandomAccessFile(filePath, "r");
-		
+
 		while(size_left >0) {
 
 			if (size_left >1000) {
@@ -449,7 +449,7 @@ public class Server {
 			file.read(partitionData, 0, (int) partition_size);
 			seek += partition_size;	
 			size_left -= partition_size;
-			
+
 			//change the contents of the packet
 			sequenceNo = GenerateSeqenceNumber(sequenceNo);
 			bodyData = partitionData;
@@ -472,7 +472,7 @@ public class Server {
 			bodyData = partitionNum_string.getBytes();
 			SendPacket();
 			ReceivePacketWithInterruptAndRetransmissionServer();
-			
+
 		}
 		else {
 			System.out.println("File requested by client is not available.");
@@ -490,10 +490,24 @@ public class Server {
 		}
 	}
 
-	public static void ProcessPUT() {
+	public static void ProcessPUT() throws IOException, InterruptedException {
 		//execute the partition assembler
+		String PartitionNum_String = new String(bodyData, StandardCharsets.UTF_8); 
+		int PartitionNum = Integer.parseInt(PartitionNum_String);
+		FileOutputStream fos = null;
 		
 		
+		for (int i=0;i<PartitionNum;i++) {
+			SendACK();
+			ReceivePacketWithInterruptAndRetransmissionServer();
+			
+			fos = new FileOutputStream(fileName);
+			int offset = 0;
+			fos.write(bodyData, offset, (int)length);
+			offset += length;
+
+		}
+		fos.close();
 	}
 
 	private static void ProcessPacketRequest() {
@@ -505,11 +519,15 @@ public class Server {
 				System.out.println("Error: Processing GET failed.");
 			}
 		}
-		
+
 		else if(msgType.equals("PUT")) {
-			ProcessPUT();
+			try {
+				ProcessPUT();
+			} catch (Exception e) {
+				System.out.println("Error: Processing PUT failed.");
+			}
 		}
-		
+
 		else if (msgType.equals("FIN")) {
 			System.out.println("Client Requested to terminate connection.");
 			try {
