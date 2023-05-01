@@ -22,7 +22,7 @@ public class Server {
 	private static DatagramPacket sendPacket;
 	private static DatagramPacket receivePacket;
 
-	// Data related variables of the Packet that is received through the socket
+	// Data related variables of the Packet that is sent/received through the socket
 	private static byte[] receiveData = new byte[1024];
 	private static byte[] sendData = new byte[1024];
 	//header contents
@@ -36,19 +36,9 @@ public class Server {
 	//body contents
 	private static byte[] bodyData;
 
-
-	// Data related variables of the Packet that is sent through the socket
-
-	//	//header contents
-	//	private static String HostIP2;
-	//	private static String msgType2;
-	//	private static int filename_length2;
-	//	private static String fileName2;
-	//	private static int sequenceNo2;
-	//	private static long length2;
-	//	//body contents
-	//	private static byte[] bodyData2;
-
+	private static String folderPath = "C:\\Users\\abelk\\eclipse-workspace\\Computer-Networks-Final-Project\\";
+	private static byte [] partitionData;
+	private static int seek=0;
 
 
 	// Packet content related variables
@@ -260,8 +250,7 @@ public class Server {
 	@SuppressWarnings({ "removal", "deprecation" })
 	//needs to change -- refer to the second version
 	private static void ReceivePacketWithInterruptAndRetransmissionServer() throws InterruptedException, IOException {
-		ReceivePacketThread m = new ReceivePacketThread(serverSocket); //Threading
-
+		ReceivePacketThread m = new ReceivePacketThread(serverSocket, sequenceNo); //Threading
 		m.start(); //start the thread
 		while(true){ //run while the sent ack is not ack'ed back
 			// check at certain intervals if the packet was received successfully until timeout 
@@ -290,7 +279,7 @@ public class Server {
 	}
 	//Checks if file is available on the specified path below
 	private static boolean isFileAvailable(String filename) {
-		String folderPath = "C:\\Users\\abelk\\eclipse-workspace\\Computer_Networks_Assignment_2\\"; 
+		//		String folderPath = folderPath; 
 		File folder = new File(folderPath);
 		File file = new File(folder, filename);
 		if (file.exists())	return true;
@@ -299,7 +288,7 @@ public class Server {
 	//Returns the file size in a String format
 	@SuppressWarnings("null")
 	private static long Filesize(String filename){
-		String folderPath = "C:\\Users\\abelk\\eclipse-workspace\\Computer_Networks_Assignment_2\\"; 
+		//		String folderPath = folderPath; 
 		File folder = new File(folderPath);
 		File file = new File(folder, filename);
 		if (file.exists()){
@@ -403,22 +392,156 @@ public class Server {
 			System.out.println("Error in the Third termination step");
 		}
 	}
+	public static int GetPartionsNum(long fileSize) {
 
+		int partitionsize;
+		int count=0;
 
-	public static void HandleClient() {
+		while (fileSize>0) {
+			if (fileSize>1000) {
+				partitionsize = 1000;
+
+			}
+			else {
+				partitionsize = (int)fileSize; //assigns the left over file size to partition size
+			}
+
+			fileSize-= partitionsize;
+			count+=1;
+		}
+		return count; //returns the number of partitions
+	}
+
+	public static byte [] GetPartition(long partition_size) throws IOException {
+
+		byte [] temp = new byte [(int) partition_size];
+		partitionData = temp;
+		String filePath = folderPath + fileName;
+		RandomAccessFile file = new RandomAccessFile(filePath, "r");
+		file.seek(seek);
+		file.read(partitionData, 0, (int) partition_size);
+
+		seek += 1000;
+
+		return partitionData;
+	}
+
+	//function to return the num of partions, takes file_size as input
+	public static void SendPartitions(long file_size) throws IOException, InterruptedException {
+
+		long size_left = file_size;
+		int partition_size =0;
+		String filePath = folderPath + fileName;
+		RandomAccessFile file = new RandomAccessFile(filePath, "r");
+		
+		while(size_left >0) {
+
+			if (size_left >1000) {
+				partition_size = 1000;
+
+			}
+			else {
+				partition_size = (int) size_left;
+			}
+			partitionData = new byte[partition_size];
+			partitionData = GetPartition(partition_size);
+			file.seek(seek);
+			file.read(partitionData, 0, (int) partition_size);
+			seek += partition_size;	
+			size_left -= partition_size;
+			
+			//change the contents of the packet
+			sequenceNo = GenerateSeqenceNumber(sequenceNo);
+			bodyData = partitionData;
+			msgType = "RSP";
+			SendPacket();
+			ReceivePacketWithInterruptAndRetransmissionServer();
+			size_left -= partition_size;
+		}
+		file.close();
+	}
+
+	public static void ProcessGET() throws IOException, InterruptedException {
+		if(isFileAvailable(fileName)) {
+			long filesize = Filesize(fileName);
+			int partitionNum = GetPartionsNum(filesize);
+			String partitionNum_string = ""+partitionNum;
+			sequenceNo = GenerateSeqenceNumber(sequenceNo);
+			msgType = "ACK";
+			length = partitionNum_string.length();
+			bodyData = partitionNum_string.getBytes();
+			SendPacket();
+			ReceivePacketWithInterruptAndRetransmissionServer();
+			
+		}
+		else {
+			System.out.println("File requested by client is not available.");
+			String body_content = "ERROR FILE DOES NOT EXIST.";
+			fileName = "NULL";
+			sequenceNo = GenerateSeqenceNumber(sequenceNo);
+			length = body_content.length();
+			bodyData = body_content.getBytes();
+			try {
+				SendPacket();
+				ReceivePacketWithInterruptAndRetransmissionServer();
+			} catch (IOException e) {
+				System.out.println("Error: ");
+			}
+		}
+	}
+
+	public static void ProcessPUT() {
+		//execute the partition assembler
+		
+		
+	}
+
+	private static void ProcessPacketRequest() {
+
+		if (msgType.equals("GET")) { 
+			try {
+				ProcessGET();
+			} catch (Exception e) {
+				System.out.println("Error: Processing GET failed.");
+			}
+		}
+		
+		else if(msgType.equals("PUT")) {
+			ProcessPUT();
+		}
+		
+		else if (msgType.equals("FIN")) {
+			System.out.println("Client Requested to terminate connection.");
+			try {
+				TerminationSequence();
+			} catch (IOException e) {
+				System.out.println("Error: TerminationSequence");
+			}
+			System.out.println("Client Disconnected Successfully.");
+		}
+		else {
+			System.out.println("Cannot process request");
+		}
+	}
+
+	public static void HandleClient() throws InterruptedException, IOException {
 
 		// Do the three way handshake
 		ThreeWayHandShake();
 		boolean clientconnected = true;
 		while(clientconnected) {
+			ReceivePacketWithInterruptAndRetransmissionServer();
 			if (msgType.equals("FIN")){
 				ProcessPacketRequest();
 				clientconnected = false;
 				break;
 			}
-
-
+			ProcessPacketRequest();
+			System.out.println("Client Request Completed. \nListening for another Request...");	
 		}
+		serverSocket.close();
+		System.out.println("Client Disconnected!");
+		System.out.println("____________________________________________________________________________________\n\n");
 
 	}
 

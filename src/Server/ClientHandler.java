@@ -1,5 +1,6 @@
 package Server;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
@@ -18,11 +19,8 @@ public class ClientHandler  extends Thread{
 		this.ClientHandlerPort = Port; // a port on a server 
 	}
 	
-	
 	@Override
 	public void run() {
-		// code to process client request is put here
-		//Note that the first step of the Three-way handshake
 		try {
 			ServerSocket = new DatagramSocket(ClientHandlerPort);
 		} catch (SocketException e) {
@@ -31,25 +29,14 @@ public class ClientHandler  extends Thread{
 		}
 		Server ClientSession = new Server(Packet, ServerSocket);
 		
-		ClientSession.HandleClient();
-		
-//		try {
-//			ServerSocket = new DatagramSocket(ClientHandlerPort);
-//		} catch (SocketException e) {
-//			System.out.println("Client Handler Failed.");
-//		}
-		
-		
-		
-		//Do the three way handshake
-
-		//System.out.println("Server Listening to Client "+""+" Requests...");
-		
-
-
-
-
-		// at the end close the used socket
+		try {
+			ClientSession.HandleClient(); //will handle all client requests
+		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+		}
 	}
-
 }
