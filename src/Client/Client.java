@@ -20,7 +20,7 @@ public class Client {
 	public static DatagramPacket sendPacket;
 	static InetAddress clientAddress;
 	static InetAddress serverAddress = null;
-	static int serverPort = 9881;
+	static int serverPort = 5000;
 	static String serverName = "";
 
 	// Data related variables
@@ -205,7 +205,7 @@ public class Client {
 		//		sendData = GeneratePacketClientSide(hostIP, msgType, fileName, sequenceNo, length, bodyData);
 		//		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, serverPort);
 		try {
-			clientSocket.send(sendPacket);
+			//clientSocket.send(sendPacket);
 			SendPacket();
 
 		} catch (IOException e1) {
