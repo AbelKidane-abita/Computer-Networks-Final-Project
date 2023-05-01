@@ -111,6 +111,7 @@ public class Server {
 		PrintPacketContents();
 	}
 
+	
 	private static byte[] GeneratePacketServerSide(String hostIP, String messageType, String filename, 
 			int SeqNo, long length, byte[] body) {
 
@@ -190,6 +191,12 @@ public class Server {
 
 	//Three way handshake
 	private static void ThreeWayHandShake() {
+		try {
+			HostIP = InetAddress.getLocalHost().getHostAddress();
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			// e.printStackTrace();
+		}
 		//first step - receive the request to connect
 		System.out.println("Executing the first step for the three way handshake on the server side");
 		// FirstStep(); //packet already received in the ServerListenerThread so instead we need the method below
@@ -246,16 +253,47 @@ public class Server {
 			System.out.println("Error in the Third part of the 3 way handshake");
 		}
 	}
+	
+	private static void ConfirmReceptionofAckPacket() throws InterruptedException, IOException {
+		boolean dontchecksequencenum = true;
+		ReceivePacketThread m = new ReceivePacketThread(serverSocket, sequenceNo,sendPacket, dontchecksequencenum); //Threading
+		m.start();
+		while(true){ //run while the sent ack is not ack'ed back
+			// check at certain intervals if the packet was received successfully until timeout 
+			int delay = 0;
+			while(m.getDataReceivedSuccessfully() == false && delay<=4000) { //wait for a maximum of 2 seconds
+				Thread.sleep(10);//Milliseconds
+				delay +=10;
+			}
+			//suspend or stop the thread
+			if (m.getDataReceivedSuccessfully() == true) { // data not received
+				m.suspend();
+				//code to re-send the packet from the second step
+				System.out.println("Retransmission");
+				SendPacket();
+				//resume the thread
+				m.resume();
+			}
+			else { //data received
+				//get the packet from the thread
+				receivePacket = m.getReceivePacket();
+				ReadPacket();
+				m.stop();
+				break;
+			}
+		}
+	}
 
 	@SuppressWarnings({ "removal", "deprecation" })
 	//needs to change -- refer to the second version
 	private static void ReceivePacketWithInterruptAndRetransmissionServer() throws InterruptedException, IOException {
-		ReceivePacketThread m = new ReceivePacketThread(serverSocket, sequenceNo); //Threading
+		boolean dontchecksequencenum = false;
+		ReceivePacketThread m = new ReceivePacketThread(serverSocket, sequenceNo,sendPacket, dontchecksequencenum); //Threading
 		m.start(); //start the thread
 		while(true){ //run while the sent ack is not ack'ed back
 			// check at certain intervals if the packet was received successfully until timeout 
 			int delay = 0;
-			while(m.getDataReceivedSuccessfully() == false && delay<=5000) { //wait for a maximum of 2 seconds
+			while(m.getDataReceivedSuccessfully() == false && delay<=2000) { //wait for a maximum of 2 seconds
 				Thread.sleep(10);//Milliseconds
 				delay +=10;
 			}
@@ -544,8 +582,11 @@ public class Server {
 		}
 	}
 
-	public static void HandleClient() throws InterruptedException, IOException {
-
+	public static void HandleClient(int ClientHandlerPort) throws InterruptedException, IOException {
+		
+		String port = ClientHandlerPort+"";
+		bodyData = port.getBytes();
+		length = "ACK".length();
 		// Do the three way handshake
 		ThreeWayHandShake();
 		boolean clientconnected = true;

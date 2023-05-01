@@ -3,7 +3,9 @@ package Server;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.time.LocalTime;
 
 public class ServerListenerThread extends Thread{
@@ -20,23 +22,27 @@ public class ServerListenerThread extends Thread{
 	
 	
 	public void run(){
-		
+		InetAddress inetAddress;
+		String hostName= null;
+		try {
+			inetAddress = InetAddress.getLocalHost();
+			hostName = inetAddress.getHostName();
+		} catch (UnknownHostException e1) {
+			System.out.println("Error in getting the host name.");
+		}
+		try {
+			ServerSocket = new DatagramSocket(MainServerPort);
+		} catch (SocketException e) {
+			System.out.println("Error: Listening through port-"+MainServerPort+" has failed.");
+		}
+	    
 		while (true) {
 			
-			System.out.println("Server Listening to clients...");
-			
+			System.out.println("Server "+hostName+ " Listening to clients...");
 			try {
-				ServerSocket = new DatagramSocket(MainServerPort);
-			} catch (SocketException e) {
-				System.out.println("Error: Listening through port-"+MainServerPort+" has failed.");
-			}
-			
-			try {
-				
 				Packet = new DatagramPacket(ReceiveData, ReceiveData.length);
 				ServerSocket.receive(Packet);
 				time = LocalTime.now();
-				
 				//add the packet and time to the queue
 				Server_Main.PacketQueue.add(Packet);
 				Server_Main.TimeQueue.add(time);
@@ -44,6 +50,7 @@ public class ServerListenerThread extends Thread{
 			} catch (IOException e) {
 				System.out.println("Error: Server Listener failed in receiving the packet");
 			}
-		}
+			
+		}	
 	}
 }

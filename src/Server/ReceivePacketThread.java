@@ -8,6 +8,7 @@ import java.time.LocalTime;
 import java.util.Arrays;
 
 // to receive the packet just pass the socket object to listen through that socket
+@SuppressWarnings("unused")
 public class ReceivePacketThread extends Thread{
 
 	private static DatagramPacket receivePacket;
@@ -29,12 +30,15 @@ public class ReceivePacketThread extends Thread{
 	private static long length;
 	//body contents
 	private static byte[] bodyData;
+	private static DatagramPacket sendPacket;
+	private static boolean dontchecksequencenum;
 
 	//constructor
-	ReceivePacketThread(DatagramSocket serverSocket, int sequenceNo){ 
+	ReceivePacketThread(DatagramSocket serverSocket, int sequenceNo,DatagramPacket sendPacket , boolean dontchecksequencenum){ 
 		this.serverSocket = serverSocket; 
-		this.PrevioussequenceNo = sequenceNo;
-		this.ExpectedsequenceNo = GenerateSeqenceNumber(PrevioussequenceNo);
+		this.ExpectedsequenceNo = GenerateSeqenceNumber(sequenceNo);
+		this.sendPacket = sendPacket;
+		this.dontchecksequencenum = dontchecksequencenum;
 	}
 	// getter for the received packet
 	public static DatagramPacket getReceivePacket() { return receivePacket; }
@@ -95,7 +99,7 @@ public class ReceivePacketThread extends Thread{
 				+fileName_length + sequenceNo_length + length_length ;
 		int bodyEndIndex = (int) (bodyStartIndex + length);
 		bodyData = Arrays.copyOfRange(messageData, bodyStartIndex, bodyEndIndex);
-		
+
 	}
 	
 	public void run(){
@@ -105,10 +109,14 @@ public class ReceivePacketThread extends Thread{
 				serverSocket.receive(receivePacket);
 				time = LocalTime.now();
 				ReadPacket();
-				if(ExpectedsequenceNo==sequenceNo){
+				if(ExpectedsequenceNo==sequenceNo | dontchecksequencenum){
 					DataReceivedSuccessfully = true;
 					Thread.sleep(20);
-				}				
+				}
+				else {
+					//retransmit through the socket 
+					serverSocket.send(sendPacket);
+				}
 			}
 		}catch(Exception mythreadexception) {
 			//--thread exception

@@ -21,6 +21,7 @@ public class ClientHandler  extends Thread{
 	
 	@Override
 	public void run() {
+		
 		try {
 			ServerSocket = new DatagramSocket(ClientHandlerPort);
 		} catch (SocketException e) {
@@ -30,7 +31,7 @@ public class ClientHandler  extends Thread{
 		Server ClientSession = new Server(Packet, ServerSocket);
 		
 		try {
-			ClientSession.HandleClient(); //will handle all client requests
+			ClientSession.HandleClient(ClientHandlerPort); //will handle all client requests
 		} catch (InterruptedException e) {
 //			// TODO Auto-generated catch block
 //			e.printStackTrace();
