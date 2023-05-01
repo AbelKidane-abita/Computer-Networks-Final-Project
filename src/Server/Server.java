@@ -84,7 +84,7 @@ public class Server {
 		SendPacket();
 	}
 
-	public static void PrintPacketContents() throws IOException{
+	private static void PrintPacketContents() throws IOException{
 		System.out.println("\n-----------------------------------------------------");
 		System.out.println("\t\t HEADER");
 		System.out.println("Host IP: "+Client_IP);
@@ -111,14 +111,14 @@ public class Server {
 		PrintPacketContents();
 	}
 
-	public static byte[] GeneratePacketServerSide(String hostIP, String messageType, String filename, 
+	private static byte[] GeneratePacketServerSide(String hostIP, String messageType, String filename, 
 			int SeqNo, long length, byte[] body) {
 
 		// create a ByteBuffer to hold the message
 		ByteBuffer message = ByteBuffer.allocate(HEADER_SIZE ); //change size later
 		// set the header fields
 		int ip_length = hostIP.length();
-		String ip_length_string = ConvertInt(ip_length, 3);
+		String ip_length_string = ConvertInt(ip_length, 2);
 		message.put(ip_length_string.getBytes(StandardCharsets.UTF_8));
 		message.put(hostIP.getBytes(StandardCharsets.UTF_8));
 		message.put(messageType.getBytes(StandardCharsets.UTF_8));
@@ -392,7 +392,7 @@ public class Server {
 			System.out.println("Error in the Third termination step");
 		}
 	}
-	public static int GetPartionsNum(long fileSize) {
+	private static int GetPartionsNum(long fileSize) {
 
 		int partitionsize;
 		int count=0;
@@ -412,7 +412,7 @@ public class Server {
 		return count; //returns the number of partitions
 	}
 
-	public static byte [] GetPartition(long partition_size) throws IOException {
+	private static byte [] GetPartition(long partition_size) throws IOException {
 
 		byte [] temp = new byte [(int) partition_size];
 		partitionData = temp;
@@ -421,13 +421,13 @@ public class Server {
 		file.seek(seek);
 		file.read(partitionData, 0, (int) partition_size);
 
-		seek += 1000;
+		seek += partition_size;
 
 		return partitionData;
 	}
 
 	//function to return the num of partions, takes file_size as input
-	public static void SendPartitions(long file_size) throws IOException, InterruptedException {
+	private static void SendPartitions(long file_size) throws IOException, InterruptedException {
 
 		long size_left = file_size;
 		int partition_size =0;
@@ -461,7 +461,7 @@ public class Server {
 		file.close();
 	}
 
-	public static void ProcessGET() throws IOException, InterruptedException {
+	private static void ProcessGET() throws IOException, InterruptedException {
 		if(isFileAvailable(fileName)) {
 			long filesize = Filesize(fileName);
 			int partitionNum = GetPartionsNum(filesize);
@@ -472,7 +472,9 @@ public class Server {
 			bodyData = partitionNum_string.getBytes();
 			SendPacket();
 			ReceivePacketWithInterruptAndRetransmissionServer();
-
+			
+			//transmit the file partitions 
+			SendPartitions(filesize);
 		}
 		else {
 			System.out.println("File requested by client is not available.");
@@ -490,12 +492,12 @@ public class Server {
 		}
 	}
 
-	public static void ProcessPUT() throws IOException, InterruptedException {
+	private static void ProcessPUT() throws IOException, InterruptedException {
 		//execute the partition assembler
 		String PartitionNum_String = new String(bodyData, StandardCharsets.UTF_8); 
 		int PartitionNum = Integer.parseInt(PartitionNum_String);
-		FileOutputStream fos = null;
 		
+		FileOutputStream fos = null;
 		
 		for (int i=0;i<PartitionNum;i++) {
 			SendACK();
