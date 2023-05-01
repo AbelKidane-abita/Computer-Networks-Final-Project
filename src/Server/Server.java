@@ -234,18 +234,23 @@ public class Server {
 		}
 	}
 	private static void SecondStep() {
+		
 		msgType = "ACK";
 		fileName = "NULL";
-		String message = "ACK";
-		length = message.length();
-		bodyData = message.getBytes();
+		bodyData = port_string.getBytes(); //port number passed from ClientHandler
+		length = port_string.length();
 		sequenceNo = GenerateSeqenceNumber(sequenceNo);
+		
+		System.out.println("Client details: " +clientAddress+ clientPort);
+		
 		try {
+			SendPacket();
 			SendPacket();
 		}catch(Exception f) {
 			System.out.println("Error in the second part of the 3 way handshake");
 		}
 	}
+	
 	private static void ThirdStep() {
 		try {
 			ReceivePacketWithInterruptAndRetransmissionServer() ;
@@ -581,12 +586,10 @@ public class Server {
 			System.out.println("Cannot process request");
 		}
 	}
-
+	public static String port_string=null;
 	public static void HandleClient(int ClientHandlerPort) throws InterruptedException, IOException {
-		
+		port_string = ClientHandlerPort+"";
 		String port = ClientHandlerPort+"";
-		bodyData = port.getBytes();
-		length = "ACK".length();
 		// Do the three way handshake
 		ThreeWayHandShake();
 		boolean clientconnected = true;

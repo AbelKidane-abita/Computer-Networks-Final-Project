@@ -6,6 +6,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.time.LocalTime;
 
 public class ServerListenerThread extends Thread{
@@ -15,6 +16,8 @@ public class ServerListenerThread extends Thread{
 	private static byte[] ReceiveData = new byte[1024];
 	private static DatagramSocket ServerSocket;
 	private static LocalTime time;
+	private static InetAddress clientAddress;
+	private static int clientPort;
 	
 	public ServerListenerThread(int port) {
 		this.MainServerPort = port;
@@ -46,6 +49,13 @@ public class ServerListenerThread extends Thread{
 				//add the packet and time to the queue
 				Server_Main.PacketQueue.add(Packet);
 				Server_Main.TimeQueue.add(time);
+				
+				clientAddress = Packet.getAddress();
+				clientPort = Packet.getPort();
+//				String port_string = Server_Main.getport() + "";
+//				byte [] sendData= (port_string.getBytes());
+//				DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
+//				ServerSocket.send(sendPacket); //send the port number to the client
 				
 			} catch (IOException e) {
 				System.out.println("Error: Server Listener failed in receiving the packet");

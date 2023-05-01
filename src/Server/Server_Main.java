@@ -19,6 +19,10 @@ public class Server_Main {
 	private static int port = 5000;
 	private static DatagramSocket ServerSocket;
 	
+	public static int getport() {
+		return port;
+	}
+	
 	private static void Organizer() {
 		int NumberofClients=0;
 		//use setReceiveddata to update the value of receiveData
@@ -26,7 +30,7 @@ public class Server_Main {
 		
 		while (true) {
 			//add the code to drop the packet if a clientHandler has already been created
-			System.out.println("!PacketQueue.isEmpty()" + !PacketQueue.isEmpty());
+//			System.out.println("!PacketQueue.isEmpty()" + !PacketQueue.isEmpty());
 			
 			if (!PacketQueue.isEmpty()) {
 				System.out.println("this line--------------------");
@@ -46,13 +50,13 @@ public class Server_Main {
 				
 			}
 			
-//			try {
-//				
-//				Thread.sleep(1000);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
+			try {
+				
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	
