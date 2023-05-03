@@ -21,6 +21,7 @@ public class Server {
 	private static int clientPort;
 	private static DatagramPacket sendPacket;
 	private static DatagramPacket receivePacket;
+	private static String FileToTransmit;
 
 	// Data related variables of the Packet that is sent/received through the socket
 	private static byte[] receiveData = new byte[1024];
@@ -236,7 +237,7 @@ public class Server {
 	private static void SecondStep() {
 		
 		msgType = "ACK";
-		fileName = "NULL";
+//		fileName = "NULL";
 		bodyData = port_string.getBytes(); //port number passed from ClientHandler
 		length = port_string.length();
 		sequenceNo = GenerateSeqenceNumber(sequenceNo);
@@ -245,7 +246,7 @@ public class Server {
 		
 		try {
 			SendPacket();
-			SendPacket();
+//			SendPacket();
 		}catch(Exception f) {
 			System.out.println("Error in the second part of the 3 way handshake");
 		}
@@ -254,6 +255,7 @@ public class Server {
 	private static void ThirdStep() {
 		try {
 			ReceivePacketWithInterruptAndRetransmissionServer() ;
+			PrintPacketContents();
 		} catch (Exception e) {
 			System.out.println("Error in the Third part of the 3 way handshake");
 		}
@@ -325,8 +327,8 @@ public class Server {
 		//		String folderPath = folderPath; 
 		File folder = new File(folderPath);
 		File file = new File(folder, filename);
-		if (file.exists())	return true;
-		else	return false;
+		if (file.exists())	{return true;}
+		else	{return false;}
 	}
 	//Returns the file size in a String format
 	@SuppressWarnings("null")
@@ -416,7 +418,7 @@ public class Server {
 	}
 	private static void SecondTerminationStep(){
 		String body_content = "ACK";
-		fileName = "NULL";
+//		fileName = "NULL";
 		msgType = "ACK";
 		sequenceNo = GenerateSeqenceNumber(sequenceNo);
 		length = body_content.length();
@@ -459,7 +461,7 @@ public class Server {
 
 		byte [] temp = new byte [(int) partition_size];
 		partitionData = temp;
-		String filePath = folderPath + fileName;
+		String filePath = folderPath + FileToTransmit;
 		RandomAccessFile file = new RandomAccessFile(filePath, "r");
 		file.seek(seek);
 		file.read(partitionData, 0, (int) partition_size);
@@ -474,7 +476,8 @@ public class Server {
 
 		long size_left = file_size;
 		int partition_size =0;
-		String filePath = folderPath + fileName;
+		String filePath = folderPath + FileToTransmit;
+		System.out.println("filepath-----------"+ filePath);
 		RandomAccessFile file = new RandomAccessFile(filePath, "r");
 
 		while(size_left >0) {
@@ -495,6 +498,7 @@ public class Server {
 
 			//change the contents of the packet
 			sequenceNo = GenerateSeqenceNumber(sequenceNo);
+			length = partition_size;
 			bodyData = partitionData;
 			msgType = "RSP";
 			SendPacket();
@@ -503,8 +507,10 @@ public class Server {
 		}
 		file.close();
 	}
-
+	
 	private static void ProcessGET() throws IOException, InterruptedException {
+		System.out.println("File: "+fileName+" exist: "+isFileAvailable(fileName));
+		FileToTransmit = fileName;
 		if(isFileAvailable(fileName)) {
 			long filesize = Filesize(fileName);
 			int partitionNum = GetPartionsNum(filesize);
@@ -517,12 +523,13 @@ public class Server {
 			ReceivePacketWithInterruptAndRetransmissionServer();
 			
 			//transmit the file partitions 
+			System.out.println("Starting to transmit files to client...");
 			SendPartitions(filesize);
 		}
 		else {
 			System.out.println("File requested by client is not available.");
 			String body_content = "ERROR FILE DOES NOT EXIST.";
-			fileName = "NULL";
+//			fileName = "NULL";
 			sequenceNo = GenerateSeqenceNumber(sequenceNo);
 			length = body_content.length();
 			bodyData = body_content.getBytes();
@@ -561,7 +568,7 @@ public class Server {
 			try {
 				ProcessGET();
 			} catch (Exception e) {
-				System.out.println("Error: Processing GET failed.");
+				e.printStackTrace();
 			}
 		}
 
@@ -586,15 +593,32 @@ public class Server {
 			System.out.println("Cannot process request");
 		}
 	}
+	public static void ReceivePacketwithoutTimeout(){
+
+		receivePacket = new DatagramPacket(receiveData, receiveData.length);
+		try {
+			serverSocket.receive(receivePacket);
+			time = LocalTime.now();
+			ReadPacket();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
+	
 	public static String port_string=null;
 	public static void HandleClient(int ClientHandlerPort) throws InterruptedException, IOException {
 		port_string = ClientHandlerPort+"";
 		String port = ClientHandlerPort+"";
 		// Do the three way handshake
 		ThreeWayHandShake();
+		System.out.println("_____________________________________________________________________________________________");
 		boolean clientconnected = true;
 		while(clientconnected) {
-			ReceivePacketWithInterruptAndRetransmissionServer();
+			ReceivePacketwithoutTimeout();
+			System.out.println("###########################Sequencenumber: "+ sequenceNo);
 			if (msgType.equals("FIN")){
 				ProcessPacketRequest();
 				clientconnected = false;

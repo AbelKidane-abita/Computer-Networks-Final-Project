@@ -111,7 +111,7 @@ public class ReceivePacketThread extends Thread{
 				ReadPacket();
 				if(ExpectedsequenceNo==sequenceNo | dontchecksequencenum){
 					DataReceivedSuccessfully = true;
-					Thread.sleep(20);
+//					Thread.sleep(20);
 				}
 				else {
 					//retransmit through the socket 

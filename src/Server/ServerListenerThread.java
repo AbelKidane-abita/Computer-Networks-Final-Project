@@ -56,6 +56,7 @@ public class ServerListenerThread extends Thread{
 //				byte [] sendData= (port_string.getBytes());
 //				DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
 //				ServerSocket.send(sendPacket); //send the port number to the client
+				break;
 				
 			} catch (IOException e) {
 				System.out.println("Error: Server Listener failed in receiving the packet");
