@@ -182,9 +182,15 @@ public class Client {
 	//send a request to the server to connect
 	@SuppressWarnings("deprecation")
 	public static void FirstStep() {
+		try {
+			clientSocket = new DatagramSocket(3004);
+		} catch (SocketException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
 		while (serverAddress == null) {
 			try {
-				clientSocket = new DatagramSocket();
+				
 				System.out.print("UDP Client starting on host: " + InetAddress.getLocalHost().getHostName() + 
 						". \nType name of UDP server: ");
 				serverName = InputFromTerminal.readLine();
@@ -204,11 +210,11 @@ public class Client {
 
 		//		sendData = GeneratePacketClientSide(hostIP, msgType, fileName, sequenceNo, length, bodyData);
 		//		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, serverPort);
-		try {
+		try{
 			//clientSocket.send(sendPacket);
 			SendPacket();
 
-		} catch (IOException e1) {
+		}catch (IOException e1) {
 			System.out.print("Error First part of the 3 way handshake: Sending the packet failed.");
 		}	
 	}
@@ -217,8 +223,10 @@ public class Client {
 		//------------------------------------------------------------------------------------------------------------------
 		try {
 			ReceivePacketWithInterruptAndRetransmissionClient();
+			System.out.println("###############################################################");
 			String port = new String(bodyData,StandardCharsets.UTF_8);
 			serverPort = Integer.parseInt(port);  //update the port number from the client handler
+			
 		}catch(Exception e) {
 			System.out.println("Error in the second part of the 3 way handshake");
 		}
@@ -228,14 +236,15 @@ public class Client {
 	public static void ThirdStep() {
 		String message = "ACK";
 		msgType = "ACK";
-		fileName = "NULL";
+		//fileName = "NULL";
 		sequenceNo = GenerateSeqenceNumber(sequenceNo);
 		length = message.length();
 		bodyData = message.getBytes();
 		 
 		try {
 			SendPacket();
-			ConfirmReceptionofAckPacket();//modify
+			//ConfirmReceptionofAckPacket();//modify
+			
 		}catch(Exception f) {
 			System.out.println("Error in the third part of the 3 way handshake");
 		}
@@ -293,7 +302,7 @@ public class Client {
 	public static void FirstTerminationStep() throws IOException {
 		String body_content = "FIN";
 		msgType = "FIN";
-		fileName = "NULL";
+//		fileName = "NULL";
 		sequenceNo = GenerateSeqenceNumber(sequenceNo);
 		length = body_content.length();
 		bodyData = body_content.getBytes();
@@ -339,9 +348,11 @@ public class Client {
 
 		receivePacket = new DatagramPacket(receiveData, receiveData.length);
 		
+		DataReceivedSuccessfully = false;
+		
 		m  = new ReceivePacketThreadClient(sequenceNo, false); //Threading
 		//long startTime = System.currentTimeMillis();
-		DataReceivedSuccessfully = false;
+		
 		m.start();
 		while(true){ //run while the sent ack is not ack'ed back
 			try {
@@ -389,10 +400,12 @@ public class Client {
 		
 		SendPacket();
 		ReceivePacketWithInterruptAndRetransmissionClient();
+		System.out.println("######################################++++++++++++++++++++");
+		PrintPacketContents();
 		
 		String PartitionNum_String = new String(bodyData, StandardCharsets.UTF_8); 
 		int PartitionNum = Integer.parseInt(PartitionNum_String);
-
+		System.out.println("Number of partitions: "+ PartitionNum);
 		FileOutputStream fos = null;
 
 		for (int i=0;i<PartitionNum;i++) {
@@ -445,7 +458,7 @@ public class Client {
 		else {
 			System.out.println("File requested by client is not available.");
 			String body_content = "ERROR FILE DOES NOT EXIST.";
-			fileName = "NULL";
+//			fileName = "NULL";
 			sequenceNo = GenerateSeqenceNumber(sequenceNo);
 			length = body_content.length();
 			bodyData = body_content.getBytes();
@@ -500,6 +513,7 @@ public class Client {
 	public static void SendPacket() throws IOException {
 		hostIP = InetAddress.getLocalHost().getHostAddress();
 		sendData = GeneratePacketClientSide(hostIP, msgType, fileName, sequenceNo, length, bodyData);
+		System.out.println("Server Port " + serverPort);
 		sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, serverPort);
 		clientSocket.send(sendPacket);
 		time = LocalTime.now();
@@ -533,6 +547,7 @@ public class Client {
 				ProcessGET();
 			} catch (Exception e) {
 				System.out.println("Error: Processing GET failed.");
+				e.printStackTrace();
 			}
 		}
 		else if(msgType.equals("PUT")) {
@@ -550,6 +565,9 @@ public class Client {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+		else {
+			System.out.println("Error: Bad Request. Try again.");
 		}
 	}
 
