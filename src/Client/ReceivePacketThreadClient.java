@@ -144,7 +144,7 @@ public class ReceivePacketThreadClient extends Thread{
 				}
 				
 				else{
-					Client.SendPacket();
+//					Client.SendPacket();
 				}
 	
 				

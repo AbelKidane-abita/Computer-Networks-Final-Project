@@ -24,8 +24,8 @@ public class Client {
 	static String serverName = "";
 
 	// Data related variables
-	static byte[] receiveData = new byte[1024];  
-	static byte[] sendData = new byte[1024];
+	static byte[] receiveData = new byte[1100];  
+	static byte[] sendData = new byte[1100];
 	//header contents
 	static String hostIP;
 	static String msgType;
@@ -37,7 +37,7 @@ public class Client {
 	static byte[] bodyData;
 
 	// Packet content related variables
-	private static final int HEADER_SIZE = 1024;// header size
+	private static final int HEADER_SIZE = 1100;// header size
 	public static int PACKET_SIZE;
 
 	// Time related 
@@ -59,6 +59,7 @@ public class Client {
 	//Should add save file here 
 
 	public static int GenerateSeqenceNumber(int receivedSequenceNo) {
+		
 		int generatedSequenceNo = receivedSequenceNo + 1;
 		if (generatedSequenceNo>999) { generatedSequenceNo=1;}
 		return generatedSequenceNo;
@@ -91,7 +92,7 @@ public class Client {
 			clientSocket.receive(receivePacket);
 			time = LocalTime.now(); // record when the packet was received
 			clientAddress = receivePacket.getAddress();
-			serverPort = receivePacket.getPort();
+			//serverPort = receivePacket.getPort();
 			//DataReceivedSuccessfully = true;
 
 			//define the length of the fields (except for the IP)
@@ -183,7 +184,7 @@ public class Client {
 	@SuppressWarnings("deprecation")
 	public static void FirstStep() {
 		try {
-			clientSocket = new DatagramSocket(3004);
+			clientSocket = new DatagramSocket(3009);
 		} catch (SocketException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
@@ -260,6 +261,9 @@ public class Client {
 
 		System.out.println("Executing the third step for the three way handshake on the server side");
 		ThirdStep();
+		
+		sequenceNo = 0;
+		System.out.println("Sequence Number Reset");
 	}
 
 	//Receive input from the terminal
@@ -358,7 +362,7 @@ public class Client {
 			try {
 				// check at certain intervals if the packet was received successfully until timeout 
 				int delay = 0;
-				while(DataReceivedSuccessfully == false && delay<=3000) { //wait for a maximum of 3 seconds
+				while(DataReceivedSuccessfully == false && delay<=2000) { //wait for a maximum of 3 seconds
 					Thread.sleep(10);//Milliseconds
 					delay +=10;
 				}
@@ -383,8 +387,8 @@ public class Client {
 		}
 		//PrintPacketContents();
 		//address of the sender
-		clientAddress = receivePacket.getAddress();
-		serverPort = receivePacket.getPort();	
+//		clientAddress = receivePacket.getAddress();
+//		serverPort = receivePacket.getPort();	
 
 	}
 
@@ -396,22 +400,29 @@ public class Client {
 		sequenceNo = GenerateSeqenceNumber(sequenceNo);
 		String body_contents = "File Get Request.";
 		bodyData = body_contents.getBytes();
-		length = "body_contents".length();
+		length = body_contents.length();
 		
-		SendPacket();
-		ReceivePacketWithInterruptAndRetransmissionClient();
-		System.out.println("######################################++++++++++++++++++++");
+		SendPacket();//--F send request
+//		SendPacket();//--F--R
+		
+		ReceivePacketWithInterruptAndRetransmissionClient();//--f
+		System.out.println("My sequence number after receiving ack1: "+sequenceNo);
 		PrintPacketContents();
+		//ADD FOR CHECKING IF THE FILE EXISTS OR NOT
+		byte [] temp = bodyData;
+		SendACK();//--f
+		System.out.println("######################################++++++++++++++++++++");
+//		PrintPacketContents();
 		
-		String PartitionNum_String = new String(bodyData, StandardCharsets.UTF_8); 
+		String PartitionNum_String = new String(temp, StandardCharsets.UTF_8); 
 		int PartitionNum = Integer.parseInt(PartitionNum_String);
 		System.out.println("Number of partitions: "+ PartitionNum);
 		FileOutputStream fos = null;
 
 		for (int i=0;i<PartitionNum;i++) {
-			SendACK();
-			ReceivePacketWithInterruptAndRetransmissionClient();
-
+			System.out.println("Receiving partition%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+			ReceivePacketWithInterruptAndRetransmissionClient();//--f
+			SendACK();//-f
 			fos = new FileOutputStream(fileName);
 			int offset = 0;
 			fos.write(bodyData, offset, (int)length);
@@ -495,7 +506,6 @@ public class Client {
 			file.seek(seek);
 			file.read(partitionData, 0, (int) partition_size);
 			seek += partition_size;	
-			size_left -= partition_size;
 
 			//change the contents of the packet
 			sequenceNo = GenerateSeqenceNumber(sequenceNo);
@@ -514,6 +524,7 @@ public class Client {
 		hostIP = InetAddress.getLocalHost().getHostAddress();
 		sendData = GeneratePacketClientSide(hostIP, msgType, fileName, sequenceNo, length, bodyData);
 		System.out.println("Server Port " + serverPort);
+		System.out.println("ServerAddress " + serverAddress);
 		sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, serverPort);
 		clientSocket.send(sendPacket);
 		time = LocalTime.now();
