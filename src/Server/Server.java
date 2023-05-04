@@ -24,15 +24,15 @@ public class Server {
 	private static String FileToTransmit;
 
 	// Data related variables of the Packet that is sent/received through the socket
-	private static byte[] receiveData = new byte[1024];
-	private static byte[] sendData = new byte[1024];
+	private static byte[] receiveData = new byte[1100];
+	private static byte[] sendData = new byte[1100];
 	//header contents
 	private static String Client_IP;
 	private static String HostIP;
 	private static String msgType;
 	private static int filename_length;
 	private static String fileName;
-	private static int sequenceNo;
+	private static int sequenceNo = 0;
 	private static long length;
 	//body contents
 	private static byte[] bodyData;
@@ -43,7 +43,7 @@ public class Server {
 
 
 	// Packet content related variables
-	private static final int HEADER_SIZE = 1024;// header size
+	private static final int HEADER_SIZE = 1100;// header size
 	private static int PACKET_SIZE;
 
 	// Time related 
@@ -101,18 +101,23 @@ public class Server {
 	}
 
 	private static void SendPacket() throws IOException {
-		Client_IP = InetAddress.getLocalHost().getHostAddress();
-		sendData = GeneratePacketServerSide(HostIP, msgType, fileName, sequenceNo, length, bodyData);
-		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
-		serverSocket.send(sendPacket);
-		time = LocalTime.now();
-		System.out.println("Packet with sequence number " + sequenceNo + " is sent at " + time);
+		try {
+			Client_IP = InetAddress.getLocalHost().getHostAddress();
+			sendData = GeneratePacketServerSide(HostIP, msgType, fileName, sequenceNo, length, bodyData);
+			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
+			serverSocket.send(sendPacket);
+			time = LocalTime.now();
+			System.out.println("Packet with sequence number " + sequenceNo + " is sent at " + time);
 
-		System.out.println("SENT PACKET CONTENTS.");
-		PrintPacketContents();
+			System.out.println("SENT PACKET CONTENTS.");
+			PrintPacketContents();
+		}catch(Exception E) {
+			System.out.println("Error: Sending file thorugh the socket failed");
+			E.printStackTrace();
+		}
 	}
 
-	
+
 	private static byte[] GeneratePacketServerSide(String hostIP, String messageType, String filename, 
 			int SeqNo, long length, byte[] body) {
 
@@ -140,11 +145,9 @@ public class Server {
 
 		return message.array(); // convert the ByteBuffer to a byte array
 	}
-
-	private static void ReadPacket() {
-
-		clientAddress = receivePacket.getAddress();
-		clientPort = receivePacket.getPort();
+	
+	
+	private static void ReadPacket1() {
 
 		byte[] messageData = receivePacket.getData();
 		// define the length of the fields (except for the IP)
@@ -159,9 +162,11 @@ public class Server {
 		//Assign the values of the header fields
 		String ip_length_string = new String(messageData, 0, ip_length_length, StandardCharsets.UTF_8);
 		int ip_length = Integer.parseInt(ip_length_string);
+		String Client_IP1;
 		Client_IP = new String(messageData, 0, ip_length, StandardCharsets.UTF_8);
 		//System.out.println(UDPServer.Client_IP);
-		ip_length+=2;		
+		ip_length+=2;	
+		String msgType1;
 		msgType = new String(messageData, ip_length, msgType_length, StandardCharsets.UTF_8);
 		//System.out.println(UDPServer.msgType);
 		String file_length_string = new String(messageData,ip_length + msgType_length, 
@@ -169,26 +174,111 @@ public class Server {
 		//System.out.println(file_length_string);
 		fileName_length= Integer.parseInt(file_length_string);
 
+		String fileName1;
 		fileName = new String(messageData,ip_length + msgType_length +fileName_length_length,
 				fileName_length,  StandardCharsets.UTF_8 );
 
 		String sequence_number_string = new String(messageData,ip_length + msgType_length + fileName_length_length
 				+fileName_length, sequenceNo_length, StandardCharsets.UTF_8 );
+		int sequenceNo1;
 		sequenceNo = Integer.parseInt(sequence_number_string);
 
 		String length_string = new String(messageData,ip_length + msgType_length +fileName_length_length
 				+ fileName_length + sequenceNo_length, length_length, StandardCharsets.UTF_8 );
+		long length;
 		length = Integer.parseInt(length_string);
 
 
 		// Read the message body
+		byte[] bodyData1;
 		bodyData  = new byte[(int) length];
 		int bodyStartIndex = ip_length + msgType_length + fileName_length_length 
 				+fileName_length + sequenceNo_length + length_length ;
 		int bodyEndIndex = (int) (bodyStartIndex + length);
 		bodyData = Arrays.copyOfRange(messageData, bodyStartIndex, bodyEndIndex);
+	}
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+	private static void ReadPacket() {
+
+		byte[] messageData = receivePacket.getData();
+		// define the length of the fields (except for the IP)
+		// int ip_length = clientAddress.getHostAddress().length();
+		int ip_length_length = 2; // max of 2 digits
+		int msgType_length = 3;
+		int fileName_length_length = 3; //possible no. of characters of 1-999
+		int fileName_length = 11; //file123.txt --11 characters
+		int sequenceNo_length = 3;
+		int length_length = 4;
+
+		//Assign the values of the header fields
+		String ip_length_string = new String(messageData, 0, ip_length_length, StandardCharsets.UTF_8);
+		int ip_length = Integer.parseInt(ip_length_string);
+		String Client_IP1;
+		Client_IP1 = new String(messageData, 0, ip_length, StandardCharsets.UTF_8);
+		//System.out.println(UDPServer.Client_IP);
+		ip_length+=2;	
+		String msgType1;
+		msgType1 = new String(messageData, ip_length, msgType_length, StandardCharsets.UTF_8);
+		//System.out.println(UDPServer.msgType);
+		String file_length_string = new String(messageData,ip_length + msgType_length, 
+				fileName_length_length, StandardCharsets.UTF_8 );
+		//System.out.println(file_length_string);
+		fileName_length= Integer.parseInt(file_length_string);
+
+		String fileName1;
+		fileName1 = new String(messageData,ip_length + msgType_length +fileName_length_length,
+				fileName_length,  StandardCharsets.UTF_8 );
+
+		String sequence_number_string = new String(messageData,ip_length + msgType_length + fileName_length_length
+				+fileName_length, sequenceNo_length, StandardCharsets.UTF_8 );
+		int sequenceNo1;
+		sequenceNo1 = Integer.parseInt(sequence_number_string);
+
+		String length_string = new String(messageData,ip_length + msgType_length +fileName_length_length
+				+ fileName_length + sequenceNo_length, length_length, StandardCharsets.UTF_8 );
+		long length1;
+		length1 = Integer.parseInt(length_string);
+
+
+		// Read the message body
+		byte[] bodyData1;
+		bodyData1  = new byte[(int) length];
+		int bodyStartIndex = ip_length + msgType_length + fileName_length_length 
+				+fileName_length + sequenceNo_length + length_length ;
+		int bodyEndIndex = (int) (bodyStartIndex + length);
+		bodyData1 = Arrays.copyOfRange(messageData, bodyStartIndex, bodyEndIndex);
+
+
+		int expectedSequenceNo = GenerateSeqenceNumber(sequenceNo1);
+		if (expectedSequenceNo==sequenceNo1) {
+			Client_IP = Client_IP1;
+			msgType = msgType1;
+			fileName = fileName1;
+			sequenceNo = sequenceNo1;
+			length = length1;
+			bodyData = bodyData1;
+			NEWDataReceivedSuccessfully = true;
+		}
 
 	}
+
+	private static boolean NEWDataReceivedSuccessfully = false;
 
 	//Three way handshake
 	private static void ThreeWayHandShake() {
@@ -199,17 +289,18 @@ public class Server {
 			// e.printStackTrace();
 		}
 		//first step - receive the request to connect
-		System.out.println("Executing the first step for the three way handshake on the server side");
+		System.out.println("Executing the first lstep for the three way handshake on the server side");
 		// FirstStep(); //packet already received in the ServerListenerThread so instead we need the method below
 
 		//Read packet and assign the packet variables
-		ReadPacket();
+		ReadPacket1();
 
-		if (sequenceNo!=1) { 
-			SecondTerminationStep();
-		}
+//		if (sequenceNo!=1) { 
+////			SecondTerminationStep();
+//			System.out.println("First sequence number isn't 0");
+//		}
 
-		else {
+		if(true) { //was else before
 			//second step -send the ack for the received request for confirmation
 			System.out.println("Executing the second step for the three way handshake on the server side");
 			SecondStep();
@@ -220,6 +311,9 @@ public class Server {
 			clientconnected = true;
 			System.out.println("Three way handshake Successful!");
 		}
+		sequenceNo = 3; 
+//		System.out.println("SequenceNumber Reset: "+sequenceNo);
+		System.out.println(">>SequenceNumber After finishing threeway handshake: "+sequenceNo);
 	}
 	private static void FirstStep() {
 		try {
@@ -235,32 +329,33 @@ public class Server {
 		}
 	}
 	private static void SecondStep() {
-		
+
 		msgType = "ACK";
-//		fileName = "NULL";
+		//		fileName = "NULL";
 		bodyData = port_string.getBytes(); //port number passed from ClientHandler
 		length = port_string.length();
 		sequenceNo = GenerateSeqenceNumber(sequenceNo);
-		
+		clientAddress = receivePacket.getAddress();
+		clientPort = receivePacket.getPort();
 		System.out.println("Client details: " +clientAddress+ clientPort);
-		
+
 		try {
 			SendPacket();
-//			SendPacket();
+			//			SendPacket();
 		}catch(Exception f) {
 			System.out.println("Error in the second part of the 3 way handshake");
 		}
 	}
-	
+
 	private static void ThirdStep() {
 		try {
 			ReceivePacketWithInterruptAndRetransmissionServer() ;
-			PrintPacketContents();
+//			PrintPacketContents();
 		} catch (Exception e) {
 			System.out.println("Error in the Third part of the 3 way handshake");
 		}
 	}
-	
+
 	private static void ConfirmReceptionofAckPacket() throws InterruptedException, IOException {
 		boolean dontchecksequencenum = true;
 		ReceivePacketThread m = new ReceivePacketThread(serverSocket, sequenceNo,sendPacket, dontchecksequencenum); //Threading
@@ -289,6 +384,7 @@ public class Server {
 				break;
 			}
 		}
+		
 	}
 
 	@SuppressWarnings({ "removal", "deprecation" })
@@ -318,6 +414,8 @@ public class Server {
 				receivePacket = m.getReceivePacket();
 				ReadPacket();
 				m.stop();
+				System.out.println("rECEIVED pACKET");
+				PrintPacketContents();
 				break;
 			}
 		}		
@@ -349,7 +447,7 @@ public class Server {
 	private static void ReceivePacket(){
 
 		try {			
-			receivePacket = new DatagramPacket(receiveData, 1024);//receiveData.length);
+			receivePacket = new DatagramPacket(receiveData, 1100);//receiveData.length);
 			serverSocket.receive(receivePacket);
 			time = LocalTime.now();
 			clientAddress = receivePacket.getAddress();
@@ -418,7 +516,7 @@ public class Server {
 	}
 	private static void SecondTerminationStep(){
 		String body_content = "ACK";
-//		fileName = "NULL";
+		//		fileName = "NULL";
 		msgType = "ACK";
 		sequenceNo = GenerateSeqenceNumber(sequenceNo);
 		length = body_content.length();
@@ -474,40 +572,64 @@ public class Server {
 	//function to return the num of partions, takes file_size as input
 	private static void SendPartitions(long file_size) throws IOException, InterruptedException {
 
-		long size_left = file_size;
+		long size_left = Filesize(FileToTransmit);
+		System.out.println("Transmitting File size of: "+ size_left );
 		int partition_size =0;
 		String filePath = folderPath + FileToTransmit;
 		System.out.println("filepath-----------"+ filePath);
-		RandomAccessFile file = new RandomAccessFile(filePath, "r");
+		//		RandomAccessFile file = new RandomAccessFile(filePath, "r");
+		FileInputStream fis = null;
+		//		long File_length = file_size; //change the length
+		fileName = FileToTransmit;
 
+		byte [] File_Data = new byte[(int) size_left];
+
+		try {
+			fis = new FileInputStream(FileToTransmit);
+			fis.read(File_Data); //change the body
+			fis.close();
+		}catch(IOException file_exp) {
+			System.out.println("Error in reading the file.");
+		}
+
+		int bodyStartIndex = 0;
+		int bodyEndIndex = 0;
+		int count = 0;
 		while(size_left >0) {
 
 			if (size_left >1000) {
 				partition_size = 1000;
-
 			}
 			else {
 				partition_size = (int) size_left;
 			}
-			partitionData = new byte[partition_size];
-			partitionData = GetPartition(partition_size);
-			file.seek(seek);
-			file.read(partitionData, 0, (int) partition_size);
-			seek += partition_size;	
-			size_left -= partition_size;
 
+			size_left -= partition_size;
 			//change the contents of the packet
 			sequenceNo = GenerateSeqenceNumber(sequenceNo);
 			length = partition_size;
-			bodyData = partitionData;
+			bodyEndIndex = bodyStartIndex+partition_size;
+
+			System.out.println("size_left: "+size_left);
+			System.out.println("partition_size: "+partition_size);
+			System.out.println("bodyStartIndex: "+bodyStartIndex);
+			System.out.println("bodyEndIndex: "+bodyEndIndex);
+			System.out.println("File_Data: "+File_Data.length);
+
+			bodyData = new byte[partition_size];
+			bodyData = Arrays.copyOfRange(File_Data, bodyStartIndex, bodyEndIndex);
+			bodyStartIndex+=partition_size;
 			msgType = "RSP";
-			SendPacket();
-			ReceivePacketWithInterruptAndRetransmissionServer();
-			size_left -= partition_size;
+			count+=1;
+			System.out.println("Partition "+count+" sent to$$$$$$$$$$$$$$ ClientAddress: "+ clientAddress);
+			SendPacket();//f
+			ReceivePacketWithInterruptAndRetransmissionServer();//f
+			System.out.println("My Sequency Number after receiving an ACK"+count+1+": "+sequenceNo);
+
 		}
-		file.close();
+		//		file.close();
 	}
-	
+
 	private static void ProcessGET() throws IOException, InterruptedException {
 		System.out.println("File: "+fileName+" exist: "+isFileAvailable(fileName));
 		FileToTransmit = fileName;
@@ -519,9 +641,10 @@ public class Server {
 			msgType = "ACK";
 			length = partitionNum_string.length();
 			bodyData = partitionNum_string.getBytes();
-			SendPacket();
-			ReceivePacketWithInterruptAndRetransmissionServer();
-			
+			SendPacket();  //--f
+
+			ReceivePacketWithInterruptAndRetransmissionServer(); //--f
+
 			//transmit the file partitions 
 			System.out.println("Starting to transmit files to client...");
 			SendPartitions(filesize);
@@ -529,7 +652,7 @@ public class Server {
 		else {
 			System.out.println("File requested by client is not available.");
 			String body_content = "ERROR FILE DOES NOT EXIST.";
-//			fileName = "NULL";
+			//			fileName = "NULL";
 			sequenceNo = GenerateSeqenceNumber(sequenceNo);
 			length = body_content.length();
 			bodyData = body_content.getBytes();
@@ -546,13 +669,13 @@ public class Server {
 		//execute the partition assembler
 		String PartitionNum_String = new String(bodyData, StandardCharsets.UTF_8); 
 		int PartitionNum = Integer.parseInt(PartitionNum_String);
-		
+
 		FileOutputStream fos = null;
-		
+
 		for (int i=0;i<PartitionNum;i++) {
 			SendACK();
 			ReceivePacketWithInterruptAndRetransmissionServer();
-			
+
 			fos = new FileOutputStream(fileName);
 			int offset = 0;
 			fos.write(bodyData, offset, (int)length);
@@ -579,7 +702,7 @@ public class Server {
 				System.out.println("Error: Processing PUT failed.");
 			}
 		}
-
+		
 		else if (msgType.equals("FIN")) {
 			System.out.println("Client Requested to terminate connection.");
 			try {
@@ -593,21 +716,29 @@ public class Server {
 			System.out.println("Cannot process request");
 		}
 	}
-	public static void ReceivePacketwithoutTimeout(){
+	private static void ReceivePacketwithoutTimeout(){
 
+		NEWDataReceivedSuccessfully = false;
 		receivePacket = new DatagramPacket(receiveData, receiveData.length);
-		try {
-			serverSocket.receive(receivePacket);
-			time = LocalTime.now();
-			ReadPacket();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		while(true){
+			try {
+				serverSocket.receive(receivePacket);
+				time = LocalTime.now();
+				ReadPacket();
+				if(NEWDataReceivedSuccessfully) {
+					break;
+				}
+				else {
+//					SendPacket();
+				}
+
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}	
 		}
-		
 	}
-	
-	
+
 	public static String port_string=null;
 	public static void HandleClient(int ClientHandlerPort) throws InterruptedException, IOException {
 		port_string = ClientHandlerPort+"";

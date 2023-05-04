@@ -13,7 +13,7 @@ public class ServerListenerThread extends Thread{
 	
 	private static int MainServerPort;
 	private static DatagramPacket Packet;
-	private static byte[] ReceiveData = new byte[1024];
+	private static byte[] ReceiveData = new byte[1100];
 	private static DatagramSocket ServerSocket;
 	private static LocalTime time;
 	private static InetAddress clientAddress;

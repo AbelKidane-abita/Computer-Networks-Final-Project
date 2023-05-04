@@ -51,7 +51,6 @@ public class Server_Main {
 			}
 			
 			try {
-				
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block

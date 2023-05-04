@@ -15,11 +15,11 @@ public class ReceivePacketThread extends Thread{
 	private static DatagramSocket serverSocket;
 	private static LocalTime time;
 	private static boolean DataReceivedSuccessfully = false;
-	private byte[] receiveData = new byte[1024];
+	private byte[] receiveData = new byte[1100];
 	private static int PrevioussequenceNo;
 	private static int ExpectedsequenceNo;
 	// Data related variables of the Packet that is sent/received through the socket
-//	private static byte[] sendData = new byte[1024];
+//	private static byte[] sendData = new byte[1100];
 	//header contents
 	private static String Client_IP;
 	private static String HostIP;
@@ -109,13 +109,16 @@ public class ReceivePacketThread extends Thread{
 				serverSocket.receive(receivePacket);
 				time = LocalTime.now();
 				ReadPacket();
+				System.out.println("Expected Sequence Number: "+ExpectedsequenceNo);
+				System.out.println("Received Sequence Number: "+ sequenceNo);
+				System.out.println("dontchecksequencenum: "+ dontchecksequencenum);
 				if(ExpectedsequenceNo==sequenceNo | dontchecksequencenum){
 					DataReceivedSuccessfully = true;
 //					Thread.sleep(20);
 				}
 				else {
 					//retransmit through the socket 
-					serverSocket.send(sendPacket);
+//					serverSocket.send(sendPacket);
 				}
 			}
 		}catch(Exception mythreadexception) {
